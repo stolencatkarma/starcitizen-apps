@@ -7,8 +7,7 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 class StarCitizenAPI:
-    BASE_URL = "https://starcitizen-api.com/api/v1"
-    HEADERS = {"Authorization": f"Bearer {API_KEY}"}
+    BASE_URL = f"https://starcitizen-api.com/{API_KEY}/v1/cache"
 
     _all_systems_cache = None
 
@@ -16,7 +15,7 @@ class StarCitizenAPI:
     def get_all_systems(cls):
         if cls._all_systems_cache is None:
             try:
-                response = requests.get(f"{cls.BASE_URL}/starmap/systems", headers=cls.HEADERS)
+                response = requests.get(f"{cls.BASE_URL}/starmap/systems")
                 response.raise_for_status()
                 systems = response.json()
                 cls._all_systems_cache = [system['name'] for system in systems.get('data', [])]
@@ -30,7 +29,7 @@ class StarCitizenAPI:
         if not query or len(query) < 2: # Avoid searching for very short strings
             return []
         try:
-            response = requests.get(f"{cls.BASE_URL}/starmap/search?query={query}", headers=cls.HEADERS)
+            response = requests.get(f"{cls.BASE_URL}/starmap/search?query={query}")
             response.raise_for_status()
             data = response.json().get('data', {})
             
@@ -49,7 +48,7 @@ class StarCitizenAPI:
             return None
         try:
             # First, search for the location to get its code
-            search_response = requests.get(f"{cls.BASE_URL}/starmap/search?query={location_name}", headers=cls.HEADERS)
+            search_response = requests.get(f"{cls.BASE_URL}/starmap/search?query={location_name}")
             search_response.raise_for_status()
             search_data = search_response.json().get('data', {})
 
@@ -64,7 +63,7 @@ class StarCitizenAPI:
                 return "No details found for this location."
 
             # Now, get the full details using the code
-            details_response = requests.get(f"{cls.BASE_URL}/starmap/object?code={location_code}", headers=cls.HEADERS)
+            details_response = requests.get(f"{cls.BASE_URL}/starmap/object?code={location_code}")
             details_response.raise_for_status()
             details_data = details_response.json().get('data', {})
 
