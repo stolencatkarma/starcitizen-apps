@@ -1,8 +1,14 @@
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY")
 
 class StarCitizenAPI:
-    STARMAP_API_URL = "https://api.scit.tools/v1/starmap"
-    TRADE_API_URL = "https://api.sc-trade.tools/v2"
+    BASE_URL = "https://starcitizen-api.com/api/v1"
+    HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
     _all_systems_cache = None
 
@@ -10,7 +16,7 @@ class StarCitizenAPI:
     def get_all_systems(cls):
         if cls._all_systems_cache is None:
             try:
-                response = requests.get(f"{cls.STARMAP_API_URL}/systems")
+                response = requests.get(f"{cls.BASE_URL}/starmap/systems", headers=cls.HEADERS)
                 response.raise_for_status()
                 systems = response.json()
                 cls._all_systems_cache = [system['name'] for system in systems.get('data', [])]
@@ -24,12 +30,12 @@ class StarCitizenAPI:
         if not query or len(query) < 2: # Avoid searching for very short strings
             return []
         try:
-            response = requests.get(f"{cls.STARMAP_API_URL}/search?query={query}")
+            response = requests.get(f"{cls.BASE_URL}/starmap/search?query={query}", headers=cls.HEADERS)
             response.raise_for_status()
             data = response.json().get('data', {})
             
             results = []
-            for key in ['systems', 'celestial-objects', 'poi', 'jumppoints']:
+            for key in ['systems', 'celestial_objects', 'pois', 'jumppoints']:
                 if key in data:
                     results.extend([item.get('name') for item in data[key] if item.get('name')])
             return list(set(results))
@@ -43,14 +49,14 @@ class StarCitizenAPI:
             return None
         try:
             # First, search for the location to get its code
-            search_response = requests.get(f"{cls.STARMAP_API_URL}/search?query={location_name}")
+            search_response = requests.get(f"{cls.BASE_URL}/starmap/search?query={location_name}", headers=cls.HEADERS)
             search_response.raise_for_status()
             search_data = search_response.json().get('data', {})
 
             # Find the first celestial object or system in the results
             location_code = None
-            if search_data.get('celestial-objects'):
-                location_code = search_data['celestial-objects'][0].get('code')
+            if search_data.get('celestial_objects'):
+                location_code = search_data['celestial_objects'][0].get('code')
             elif search_data.get('systems'):
                 location_code = search_data['systems'][0].get('code')
 
@@ -58,7 +64,7 @@ class StarCitizenAPI:
                 return "No details found for this location."
 
             # Now, get the full details using the code
-            details_response = requests.get(f"{cls.STARMAP_API_URL}/object?code={location_code}")
+            details_response = requests.get(f"{cls.BASE_URL}/starmap/object?code={location_code}", headers=cls.HEADERS)
             details_response.raise_for_status()
             details_data = details_response.json().get('data', {})
 
@@ -75,3 +81,4 @@ class StarCitizenAPI:
         except requests.exceptions.RequestException as e:
             print(f"Error fetching location details for '{location_name}': {e}")
             return "Error fetching details."
+
