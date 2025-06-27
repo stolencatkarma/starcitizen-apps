@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from data.database import Journal
-from data.api import StarCitizenAPI
 from ui.style import setup_style
 from ui.tabs import JournalTab, SalvageTab, MiningTab
 
@@ -11,7 +10,6 @@ class App(tk.Tk):
         self.title("Star Citizen Helper - Datapad")
         self.geometry("900x700")
         self.journal = journal
-        self.systems = StarCitizenAPI.get_all_systems()
 
         # --- Style Setup ---
         self.configure(background="#212121")
